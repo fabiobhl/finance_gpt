@@ -1,5 +1,6 @@
 import os
 import json
+from enum import Enum
 from finance_gpt import TOP_LEVEL_DIR
 
 
@@ -12,6 +13,9 @@ def load_credentials() -> dict:
     
     return credentials
 
+
+class Company(Enum):
+    AMZN = "Amazon"
 
 if __name__ == "__main__":
     credentials = load_credentials()

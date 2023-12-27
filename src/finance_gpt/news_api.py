@@ -1,4 +1,4 @@
-from finance_gpt.utils import load_credentials
+from finance_gpt.utils import load_credentials, Company
 from enum import Enum
 from dataclasses import dataclass
 import datetime
@@ -12,6 +12,7 @@ class GPTSentiment(Enum):
 @dataclass
 class NewsArticle:
     # raw data
+    company: Company
     url: str
     title: str
     text: str
@@ -23,13 +24,14 @@ class NewsArticle:
     gpt_verdict: str
     
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict, ticker: str = None):
         """Creates a NewsArticle from a dictionary."""
         
         # parse date
         date_object = datetime.datetime.strptime(data["date"], '%a, %d %b %Y %H:%M:%S %z')
         
         return cls(
+            company=Company[ticker],
             url=data["news_url"],
             title=data["title"],
             text=data["text"],
@@ -67,7 +69,7 @@ class NewsApi():
         
         data = response.json()["data"]
 
-        return [NewsArticle.from_dict(news_dict) for news_dict in data]
+        return [NewsArticle.from_dict(news_dict, ticker=ticker) for news_dict in data]
             
 if __name__ == "__main__":
     news_api = NewsApi()
