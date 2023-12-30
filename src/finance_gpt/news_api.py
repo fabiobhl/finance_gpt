@@ -1,18 +1,22 @@
-from finance_gpt.utils import load_credentials, Company
+# standard libraries
 from enum import Enum
 from dataclasses import dataclass
 import datetime
+import pytz
 import requests
+# finance_gpt imports
+from finance_gpt.utils import load_credentials, load_tickers
+from finance_gpt.structures import Symbol
 
 class GPTSentiment(Enum):
-    POSITIVE = 1
-    NEUTRAL = 0
-    NEGATIVE = -1
+    YES = 1
+    UNKNOWN = 0
+    NO = -1
 
 @dataclass
 class NewsArticle:
     # raw data
-    company: Company
+    company: Symbol
     url: str
     title: str
     text: str
@@ -31,7 +35,7 @@ class NewsArticle:
         date_object = datetime.datetime.strptime(data["date"], '%a, %d %b %Y %H:%M:%S %z')
         
         return cls(
-            company=Company[ticker],
+            company=Symbol[ticker],
             url=data["news_url"],
             title=data["title"],
             text=data["text"],
@@ -61,16 +65,38 @@ class NewsApi():
     def get_news(self, ticker: str) -> list[NewsArticle]:
         params = {
             "tickers": ticker,
-            "items": 3,
-            "page": 1,
+            "items": 50,
+            "sortby": "rank",
+            "days": 1,
             "token": self.api_key,
         }
         response = requests.get(self.url, params=params)
         
         data = response.json()["data"]
 
-        return [NewsArticle.from_dict(news_dict, ticker=ticker) for news_dict in data]
-            
+        processed_data = [NewsArticle.from_dict(news_dict, ticker=ticker) for news_dict in data]
+        
+        final_data = []
+        for news in processed_data:
+            time_dt = abs((news.date - pytz.timezone("Europe/Zurich").localize(datetime.datetime.now())).total_seconds())
+            if time_dt < datetime.timedelta(days=1).total_seconds():
+                final_data.append(news)
+        
+        return final_data
+
+def load_all_news() -> dict[str:list[NewsArticle]]:
+    """Loads all news from the last 24 hours."""
+    
+    news_api = NewsApi()
+    tickers = load_tickers()
+    
+    news = {}
+    
+    for ticker in tickers:
+        news[ticker] = news_api.get_news(ticker)
+    
+    return news
+                   
 if __name__ == "__main__":
     news_api = NewsApi()
     news = news_api.get_news("AMZN")

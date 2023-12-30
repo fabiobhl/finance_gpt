@@ -1,5 +1,5 @@
 from finance_gpt.utils import load_credentials
-from finance_gpt.news_api import NewsArticle
+from finance_gpt.news_api import NewsArticle, GPTSentiment
 from openai import OpenAI
 
 class GPT():
@@ -27,7 +27,7 @@ class GPT():
 
         return prompt
         
-    def get_sentiment(self, news_article: NewsArticle, term: str) -> str:
+    def get_sentiment(self, news_article: NewsArticle, term: str):
         
         response = self.client.chat.completions.create(
             model=self.model_name,
@@ -36,11 +36,21 @@ class GPT():
             messages=[{"role": "user", "content": self.get_prompt(news_article, term)}]
         )
         
-        return response.choices[0].message.content
-    
-    
+        splits = response.choices[0].message.content.split("\n")
         
+        filtered_splits = []
+        for split in splits:
+            if len(split) > 0:
+                filtered_splits.append(split)
         
+        sentiment, reasoning = filtered_splits
+        
+        sentiment = GPTSentiment[sentiment]
+
+        news_article.gpt_sentiment = sentiment
+        news_article.gpt_verdict = reasoning
+    
+
         
 if __name__ == "__main__":
     from finance_gpt.news_api import NewsApi

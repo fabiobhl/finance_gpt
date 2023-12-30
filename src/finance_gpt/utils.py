@@ -8,14 +8,22 @@ def load_credentials() -> dict:
     """Load credentials from credentials.json file."""
     
     credentials_path = os.path.join(TOP_LEVEL_DIR, "credentials.json")
-    with open(credentials_path) as f:
-        credentials = json.load(f)    
+    try:
+        with open(credentials_path) as f:
+            credentials = json.load(f)    
+    except Exception:
+        print("Error loading credentials.json file.")
     
     return credentials
 
+def load_tickers() -> list[str]:
+    """Loads all tickers from the tickers.json file."""
+    tickers_path = os.path.join(TOP_LEVEL_DIR, "tickers.json")
+    with open(tickers_path) as f:
+        tickers = json.load(f)
+    
+    return tickers
 
-class Company(Enum):
-    AMZN = "Amazon"
 
 if __name__ == "__main__":
     credentials = load_credentials()
