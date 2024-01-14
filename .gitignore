@@ -163,6 +163,9 @@ cython_debug/
 # credentials
 credentials.json
 
+# logging config
+logging_config.json
+
 
 # data
 data/*
