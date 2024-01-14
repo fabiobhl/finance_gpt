@@ -32,7 +32,8 @@ class Scheduler():
             
             if market_opens:
                 now = datetime.datetime.now()
-                time_dt = abs((market_open_time - pytz.timezone("Europe/Zurich").localize(now)).total_seconds()) - minutes * 60
+                tz = pytz.timezone(str(market_open_time.tzinfo))
+                time_dt = abs((market_open_time - tz.localize(now)).total_seconds()) - minutes * 60
                 time.sleep(time_dt)
                 return
         
@@ -42,7 +43,7 @@ class Scheduler():
         now = datetime.datetime.now()
         
         if now.hour >= 12:
-            next_date = datetime.datetime(now.year, now.month, now.day + 1, 12, 0, 0)
+            next_date = datetime.datetime(now.year, now.month, now.day, 12, 0, 0) + datetime.timedelta(days=1)
         else:
             next_date = datetime.datetime(now.year, now.month, now.day, 12, 0, 0)
         

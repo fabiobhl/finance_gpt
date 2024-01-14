@@ -2,10 +2,9 @@ from finance_gpt.scheduler import Scheduler
 from finance_gpt.news_api import load_all_news
 from finance_gpt.gpt import GPT
 from finance_gpt.portfolio_manager import PortfolioManager
-from finance_gpt.structures import Symbol
 import pandas as pd
 
-AMOUNT_OF_STOCKS = 6
+AMOUNT_OF_STOCKS = 15
 
 if __name__ == "__main__":
     
@@ -21,7 +20,7 @@ if __name__ == "__main__":
     while True:
         
         # sleep until market opens (10 minutes before)
-        scheduler.sleep(minutes=30)
+        scheduler.sleep(minutes=15)
         
         # load news
         news = load_all_news()
@@ -56,7 +55,7 @@ if __name__ == "__main__":
         
         # create the portfolio
         new_portfolio = pm.create_portfolio(new_stocks)
-        
+                
         # wait for markets to open
         scheduler.sleep_until_market_open()
         
