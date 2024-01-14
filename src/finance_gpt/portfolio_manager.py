@@ -1,6 +1,7 @@
 # standard libraries
 import time
 # finance_gpt imports
+from finance_gpt import setup_logger
 from finance_gpt.structures import Portfolio, Position, Symbol, PositionSide
 from finance_gpt.utils import load_credentials
 # third party imports
@@ -10,6 +11,8 @@ from alpaca.trading.enums import TimeInForce, QueryOrderStatus
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockLatestBarRequest
 import pandas as pd
+
+logger = setup_logger(__name__)
 
 class PortfolioManager():
     
@@ -96,6 +99,8 @@ class PortfolioManager():
     
     def create_portfolio(self, stock_table: pd.DataFrame) -> Portfolio:
         """Creates a portfolio from a buy list."""
+        logger.debug(f"Creating portfolio from stock table: {stock_table}")
+        
         # instantiate new portfolio
         portfolio = Portfolio()
         
@@ -106,34 +111,50 @@ class PortfolioManager():
         
         # add the positions to the portfolio
         for index, row in stock_table.iterrows():
-            
             # get the symbol
             symbol = Symbol.from_string(index)
+            
+            logger.debug(f"Adding position for symbol {symbol}.")
+            logger.debug(f"Money available: {amount}, number of stocks: {num_stocks}.")
             
             # get side
             if row["score"] < 0:
                 side = PositionSide.SHORT
             else:
                 side = PositionSide.LONG
+            logger.debug(f"Side: {side}")
             
             # get the amount of stocks
             stock_price = self._get_price(symbol)
             stock_amount = (amount / num_stocks) / stock_price
+            logger.debug(f"Stock price: {stock_price}, stock amount: {stock_amount}")
+            
+            # if the side is short, round the amount of stocks (can only be integer)
             if side == PositionSide.SHORT:
+                logger.debug("Shorting Stock -> need to have rounded stock amount.")
+                
                 # calculate the amount of stocks
                 rounded_stock_amount = round(stock_amount)
+                logger.debug(f"Rounded stock amount: {rounded_stock_amount}")
                 
                 if rounded_stock_amount == 0:
+                    logger.debug("Rounded stock amount is 0, not adding position to new portfolio.")
+                    continue
+                
+                # check if symbol is shortable
+                if not self.trading_client.get_asset("AMZN").shortable:
+                    logger.debug("Symbol is not shortable, not adding position to new portfolio.")
                     continue
                     
                 stock_amount = rounded_stock_amount
     
-            
+            # add the position to the portfolio
             portfolio.add(Position(
                 symbol=symbol,
                 amount=stock_amount,
                 side=side)
             )
+            logger.debug(f"Added position for symbol {symbol} to new portfolio, amount: {stock_amount}, side: {side}.")
             
             # update the amount and number of stocks
             amount -= stock_amount * stock_price
