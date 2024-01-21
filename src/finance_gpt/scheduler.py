@@ -77,8 +77,36 @@ class Scheduler():
             return
         else:
             raise Exception("Market is closed today.")
+
+
+class SentimentScheduler():
     
-      
+    def __init__(self, interval: int) -> None:
+        self.interval = interval
+        self.last_startup = None
+        
+    def sleep(self):
+        """Sleep until next interval is reached"""       
+        
+        now = datetime.datetime.now()
+        minute = now.minute
+        
+        next_minute = minute + (self.interval - minute % self.interval)
+        next_startup = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=now.hour, minute=next_minute)
+        
+        # make sure that sentimenting didnt take too long
+        if self.last_startup is None:
+            self.last_startup = datetime.datetime.now()
+        if (next_startup - self.last_startup).total_seconds()/60 > self.interval:
+            logger.error(f"Sentimenting took to long, last startup was: {self.last_startup}, next startup is: {next_startup}")
+        self.last_startup = next_startup
+        
+        delta = (next_startup - datetime.datetime.now()).total_seconds()
+        
+        time.sleep(delta)
+        
+        
 if __name__ == "__main__":
-    scheduler = Scheduler()
-    scheduler.sleep()
+    sscheduler = SentimentScheduler(interval=5)
+    
+    sscheduler.sleep()

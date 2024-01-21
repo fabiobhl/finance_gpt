@@ -12,30 +12,30 @@ class MongoDBWrapper():
     def __init__(self) -> None:
         self.client = MongoClient("mongodb://localhost:27017")
         
-    def add_news_article(self, news_article: NewsArticle) -> None:
+    def add_news_articles(self, news_articles: list[dict]) -> None:
         """Adds a game state to the database"""
         
         # get the database and collection
         db = self.client["news"]
-        collection = db[news_article.company.name]
+        collection = db["stocknewsapi"]
         
         # insert the game state
-        collection.insert_one(asdict(news_article, dict_factory=NewsArticle.dict_factory_fun))
+        for news_article in news_articles:
+            collection.insert_one(news_article)
         
-    def get_urls(self, symbol: Symbol, time_frame: datetime.timedelta) -> list[str]:
+    def get_urls(self, time_frame: datetime.timedelta) -> list[str]:
         """Get all urls from one symbol and a certain time frame"""
         
         # get the database and collection
         db = self.client["news"]
-        collection = db[symbol.name]
+        collection = db["stocknewsapi"]
         
-        # target date is today
+        # target date is now
         target_date = datetime.datetime.now()
-        target_date = datetime.date(year=target_date.year, month=target_date.month, day=target_date.day)
         
         urls = []
         for entry in collection.find({"date": {"$gte": (target_date-time_frame).isoformat()}}):
-            urls.append(entry["url"])
+            urls.append(entry["news_url"])
             
         return urls
         

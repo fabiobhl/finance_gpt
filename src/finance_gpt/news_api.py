@@ -79,27 +79,48 @@ class NewsApi():
         except:
             raise Exception("Not able to load in credentials, please make sure you have a credentials file with the correct format.")
     
-    def get_news(self, ticker: str) -> list[NewsArticle]:
-        params = {
-            "tickers": ticker,
-            "items": 50,
-            "sortby": "rank",
-            "days": 1,
-            "token": self.api_key,
-        }
-        response = requests.get(self.url, params=params)
+    def get_news(self, tickers: list[str], time_interval_str: str) -> list[dict]:
         
-        data = response.json()["data"]
+        data = []
+        
+        for i in range(len(tickers)//50+1):
+            # create ticker string
+            ticker_str = ""
+            for symb in tickers[i*50:(i+1)*50]:
+                ticker_str += symb + ","
+            
+            # get data
+            page_number = 1
+            done = False
+            while not done:
+                params = {
+                    "tickers": ticker_str[:-1],
+                    "items": 100,
+                    "page": page_number,
+                    "date": time_interval_str,
+                    "token": self.api_key,
+                }
+                response = requests.get(self.url, params=params)
+                new_data = response.json()["data"]
+                
+                # if new data is empty skip
+                if len(new_data) == 0:
+                    done = True
+                    continue
+                
+                # get total number of pages
+                pages = response.json()["total_pages"]
+                
+                # add data
+                data += new_data
+                
+                # if data overflowed update page number
+                if page_number < pages:
+                    page_number += 1
+                else:
+                    done = True
 
-        processed_data = [NewsArticle.from_dict(news_dict, ticker=ticker) for news_dict in data]
-        
-        final_data = []
-        for news in processed_data:
-            time_dt = abs((news.date - pytz.timezone("Europe/Zurich").localize(datetime.datetime.now())).total_seconds())
-            if time_dt < datetime.timedelta(days=1).total_seconds():
-                final_data.append(news)
-        
-        return final_data
+        return data
 
 def load_all_news() -> dict[str:list[NewsArticle]]:
     """Loads all news from the last 24 hours."""
@@ -116,5 +137,5 @@ def load_all_news() -> dict[str:list[NewsArticle]]:
                    
 if __name__ == "__main__":
     news_api = NewsApi()
-    news = news_api.get_news("AMZN")
-    print(news)
+    tickers = load_tickers()
+    news = news_api.get_news(tickers=tickers, time_interval_str="last60min")
