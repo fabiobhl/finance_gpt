@@ -22,6 +22,8 @@ class NewsArticle:
     text: str
     date: datetime.datetime
     article_type: str
+    source_name: str
+    pre_sentiment: str
     
     # sentiment analysis
     gpt_sentiment: GPTSentiment
@@ -41,6 +43,8 @@ class NewsArticle:
             text=data["text"],
             date=date_object,
             article_type=data["type"],
+            source_name=data["source_name"],
+            pre_sentiment=data["sentiment"],
             gpt_sentiment=None,
             gpt_verdict=None,
         )        
