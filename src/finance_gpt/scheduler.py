@@ -91,8 +91,9 @@ class SentimentScheduler():
         now = datetime.datetime.now()
         minute = now.minute
         
-        next_minute = minute + (self.interval - minute % self.interval)
-        next_startup = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=now.hour, minute=next_minute)
+        before_minute = minute + (self.interval - minute % self.interval) - self.interval
+        before_startup = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=now.hour, minute=before_minute)
+        next_startup = before_startup + datetime.timedelta(minutes=self.interval)
         
         # make sure that sentimenting didnt take too long
         if self.last_startup is None:

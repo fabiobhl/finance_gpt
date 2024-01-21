@@ -47,7 +47,27 @@ class NewsArticle:
             pre_sentiment=data["sentiment"],
             gpt_sentiment=None,
             gpt_verdict=None,
-        )        
+        )
+        
+    @classmethod
+    def from_db(cls, data: dict, ticker: str = None):
+        """Creates a NewsArticle from a dictionary."""
+        
+        # parse date
+        date_object = datetime.datetime.strptime(data["date"], '%a, %d %b %Y %H:%M:%S %z')
+        
+        return cls(
+            company=Symbol[ticker],
+            url=data["news_url"],
+            title=data["title"],
+            text=data["text"],
+            date=date_object,
+            article_type=data["type"],
+            source_name=data["source_name"],
+            pre_sentiment=data["sentiment"],
+            gpt_sentiment=GPTSentiment(int(data["gpt_sentiment"][ticker])),
+            gpt_verdict=data["gpt_verdict"][ticker],
+        ) 
         
     @staticmethod
     def dict_factory_fun(data):

@@ -6,7 +6,7 @@ from finance_gpt.gpt import GPT
 from finance_gpt.utils import load_tickers
 from finance_gpt.mongodb import MongoDBWrapper
 
-logger = setup_logger(__name__)
+logger = setup_logger("news_sentimenter")
 
 if __name__ == "__main__":
     
