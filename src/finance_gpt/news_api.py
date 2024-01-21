@@ -44,23 +44,36 @@ class NewsArticle:
             gpt_sentiment=None,
             gpt_verdict=None,
         )        
+        
+    @staticmethod
+    def dict_factory_fun(data):
+        def convert_value(obj):
+            if isinstance(obj, Symbol):
+                return obj.name
+            elif isinstance(obj, datetime.datetime):
+                return obj.isoformat()
+            elif isinstance(obj, GPTSentiment):
+                return obj.name
+            else:
+                return obj
+
+        return dict((k, convert_value(v)) for k, v in data)
 
 class NewsApi():
     
     def __init__(self):
         # load in the api key
-        self._load_api_key()
+        self.api_key = self._load_api_key()
         # endpoint
         self.url = "https://stocknewsapi.com/api/v1"
 
-    def _load_api_key(self):
+    def _load_api_key(self) -> str:
         """Loads the API key from the credentials file."""
         try:
             creds = load_credentials()
+            return creds["stocknewsapi"]["key"]
         except:
             raise Exception("Not able to load in credentials, please make sure you have a credentials file with the correct format.")
-        
-        self.api_key = creds["stocknewsapi"]["key"]
     
     def get_news(self, ticker: str) -> list[NewsArticle]:
         params = {
