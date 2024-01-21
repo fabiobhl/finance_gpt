@@ -22,7 +22,7 @@ if __name__ == "__main__":
         # portfolio manager
         pm = PortfolioManager()
     except Exception as e:
-        logger.exception()
+        logger.exception("t")
         exit()
     
     # main loop
@@ -30,12 +30,12 @@ if __name__ == "__main__":
         logger.debug(50*"=" + "Starting new loop." + 50*"=")
         
         # sleep until market opens (15 minutes before)
-        minutes_before = 15
+        minutes_before = 30
         logger.debug(f"Sleeping until {minutes_before} minutes before market opens.")
         try:
             scheduler.sleep(minutes=minutes_before)
         except Exception as e:
-            logger.exception()
+            logger.exception("t")
             continue
         
         # load news
@@ -43,7 +43,7 @@ if __name__ == "__main__":
         try:
             news = load_all_news()
         except Exception as e:
-            logger.exception()
+            logger.exception("t")
             exit()
         
         # sentiment them with chat gpt
@@ -53,7 +53,7 @@ if __name__ == "__main__":
                 for news_article in value:
                     gpt.get_sentiment(news_article, term="short")
         except Exception as e:
-            logger.exception()
+            logger.exception("t")
             exit()
         
         # calculate sentiment score
@@ -72,7 +72,7 @@ if __name__ == "__main__":
                 else:
                     scores[key] /= counter
         except Exception as e:
-            logger.exception()
+            logger.exception("t")
             exit()
         
         
@@ -84,7 +84,7 @@ if __name__ == "__main__":
             sorted_score_df = score_df.sort_values(by="absolute_score", ascending=False)
             new_stocks = sorted_score_df.iloc[:AMOUNT_OF_STOCKS, :]
         except Exception as e:
-            logger.exception()
+            logger.exception("t")
             exit()
         logger.debug(f"New stocks: {new_stocks}")
         
@@ -93,7 +93,7 @@ if __name__ == "__main__":
         try:
             new_stocks = new_stocks[new_stocks["absolute_score"] >= 0.7]
         except Exception as e:
-            logger.exception()
+            logger.exception("t")
             exit()
         logger.debug(f"New stocks: {new_stocks}")
         
@@ -102,7 +102,7 @@ if __name__ == "__main__":
         try:
             new_portfolio = pm.create_portfolio(new_stocks)
         except Exception as e:
-            logger.exception()
+            logger.exception("t")
             exit()
         logger.debug(f"New portfolio: {new_portfolio}")
         
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         try:
             scheduler.sleep_until_market_open()
         except Exception as e:
-            logger.exception()
+            logger.exception("t")
             exit()
         logger.debug("Markets opened.")
         
@@ -120,7 +120,7 @@ if __name__ == "__main__":
         try:
             pm.update(new_portfolio=new_portfolio)
         except Exception as e:
-            logger.exception()
+            logger.exception("t")
             exit()
         logger.debug("Portfolio updated.")
         

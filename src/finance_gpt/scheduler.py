@@ -71,7 +71,8 @@ class Scheduler():
         
         if market_opens:
             now = datetime.datetime.now()
-            time_dt = abs((market_open_time - pytz.timezone("Europe/Zurich").localize(now)).total_seconds())
+            tz = pytz.timezone(str(market_open_time.tzinfo))
+            time_dt = abs((market_open_time - tz.localize(now)).total_seconds())
             time.sleep(time_dt)
             return
         else:

@@ -142,7 +142,7 @@ class PortfolioManager():
                     continue
                 
                 # check if symbol is shortable
-                if not self.trading_client.get_asset("AMZN").shortable:
+                if not self.trading_client.get_asset(symbol.name).shortable:
                     logger.debug("Symbol is not shortable, not adding position to new portfolio.")
                     continue
                     
