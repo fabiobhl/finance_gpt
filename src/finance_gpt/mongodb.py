@@ -8,7 +8,7 @@ from finance_gpt.utils import load_tickers
 class MongoDBWrapper():
     
     def __init__(self) -> None:
-        self.client = MongoClient("mongodb://localhost:27017")
+        self.client = MongoClient("mongodb://admin:qm03jsCmxh9ejZYHkesT@localhost:27017")
         
     def add_news_articles(self, news_articles: list[dict]) -> None:
         """Adds a game state to the database"""

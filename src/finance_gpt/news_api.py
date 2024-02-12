@@ -5,8 +5,10 @@ import datetime
 import pytz
 import requests
 # finance_gpt imports
-from finance_gpt.utils import load_credentials, load_tickers
+from finance_gpt.utils import load_credentials, load_tickers, setup_logger
 from finance_gpt.structures import Symbol
+
+logger = setup_logger(__name__)
 
 class GPTSentiment(Enum):
     YES = 1
@@ -112,15 +114,24 @@ class NewsApi():
             # get data
             page_number = 1
             done = False
+            max_retries = 5
             while not done:
-                params = {
-                    "tickers": ticker_str[:-1],
-                    "items": 100,
-                    "page": page_number,
-                    "date": time_interval_str,
-                    "token": self.api_key,
-                }
-                response = requests.get(self.url, params=params)
+                for _ in range(max_retries):
+                    params = {
+                        "tickers": ticker_str[:-1],
+                        "items": 100,
+                        "page": page_number,
+                        "date": time_interval_str,
+                        "token": self.api_key,
+                    }
+                    response = requests.get(self.url, params=params)
+                    logger.debug(f"response: {response}")
+                    
+                    if int(response.status_code) != 200:
+                        logger.error(f"News data was not able to load, retrying, status_code: {response.status_code}")
+                    else:
+                        break
+                
                 new_data = response.json()["data"]
                 
                 # if new data is empty skip

@@ -1,6 +1,9 @@
 from finance_gpt.utils import load_credentials
 from finance_gpt.news_api import NewsArticle, GPTSentiment
+from finance_gpt.utils import setup_logger
 from openai import OpenAI
+
+logger = setup_logger(__name__)
 
 class GPT():
     
@@ -36,14 +39,37 @@ class GPT():
             messages=[{"role": "user", "content": self.get_prompt(news_article, term)}]
         )
         
+        logger.debug(f"This is the response: {response.choices[0].message.content}")
+        
         splits = response.choices[0].message.content.split("\n")
+        
+        logger.debug(f"The splits: {splits}")
         
         filtered_splits = []
         for split in splits:
             if len(split) > 0:
                 filtered_splits.append(split)
+        logger.debug(f"The filtered splits: {splits}")
+        
+        # check if sentiment is correct
+        sentiment = filtered_splits[0]
+        if sentiment.lower() not in ["no", "yes", "unknown"]:
+            logger.warn(f"Sentiment is weird: {sentiment}")
+            
+            if "no" in sentiment:
+                sentiment = "NO"
+                logger.debug("Using sentiment NO")
+            elif "yes" in sentiment:
+                sentiment = "YES"
+                logger.debug("Using sentiment YES")
+            else:
+                raise Exception("Dont know what to do with this sentiment")
+            
         
         sentiment, reasoning = filtered_splits
+        
+        logger.debug(f"The sentiment: {sentiment}")
+        logger.debug(f"The reasoning: {reasoning}")
         
         sentiment = GPTSentiment[sentiment]
 
